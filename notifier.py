@@ -8,7 +8,7 @@ sc_channel_name = None
 
 # Initialize object
 def init():
-    global sc, wanted_pokemon
+    global sc, wanted_pokemon, sc_channel_name
     # load pushbullet key
     with open('config.json') as data_file:
         data = json.load(data_file)
