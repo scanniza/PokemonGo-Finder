@@ -1,12 +1,14 @@
 import json
-from pushbullet import Pushbullet
+from slackclient import SlackClient
+import datetime
 
-pushbullet_client = None
 wanted_pokemon = None
+sc = None
+sc_channel_name = None
 
 # Initialize object
 def init():
-    global pushbullet_client, wanted_pokemon
+    global sc, wanted_pokemon
     # load pushbullet key
     with open('config.json') as data_file:
         data = json.load(data_file)
@@ -14,9 +16,11 @@ def init():
         wanted_pokemon = _str( data["notify"] ) . split(",")
         # transform to lowercase
         wanted_pokemon = [a.lower() for a in wanted_pokemon]
-        # get api key
-        api_key = _str( data["pushbullet"] )
-        pushbullet_client = Pushbullet(api_key)
+        # get token
+        token = _str( data["slack"] )
+        sc_channel_name = _str( data["slack_channel_name"] )
+        sc = SlackClient(token)
+
 
 
 # Safely parse incoming strings to unicode
@@ -27,14 +31,19 @@ def _str(s):
 def pokemon_found(pokemon):
     # get name
     pokename = _str( pokemon["name"] ).lower()
+    poketime = datetime.datetime.fromtimestamp(int(pokemon["disappear_time"])).strftime('%H:%M')
+    address = "http://maps.google.com/maps?z=12&t=m&q=loc:"+str(pokemon["lat"])+"+"+str(pokemon["lng"])
     # check array
     if not pokename in wanted_pokemon: return
+
     # notify
     print "[+] Notifier found pokemon:", pokename
-    address = str(pokemon["lat"]) + " " + str(pokemon["lng"])
-    notification_text = "Pokemon Finder found a " + _str(pokemon["name"]) + "!"
-    location_text = "Go search at this location: " + address + ". " + _str(pokemon["name"]) + " will be available until " + str(pokemon["disappear_time"]) + "."
-    push = pushbullet_client.push_note(notification_text, location_text)
+    text = "*"+_str(pokemon["name"]) + "* found! Disappears at: " + poketime + "\n<"+address+"|GOOGLE MAPS> <https://img.pokemondb.net/sprites/black-white/anim/normal/"+pokename+".gif| :pokeball:>"
+    sc.api_call(
+        "chat.postMessage", channel=sc_channel_name, text=text,
+        username='PokemonHunter3000', icon_emoji=':pokeball:',
+        mrkdwn=True
+    )
 
 
 

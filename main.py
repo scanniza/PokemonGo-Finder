@@ -670,10 +670,10 @@ transform_from_wgs_to_gcj(Location(Fort.Latitude, Fort.Longitude))
             "id": poke.pokemon.PokemonId,
             "name": pokename
         }
+        if poke.SpawnPointId not in pokemons:
+        	notifier.pokemon_found(pokemon_obj)
 
         pokemons[poke.SpawnPointId] = pokemon_obj
-
-        notifier.pokemon_found(pokemon_obj)
 
 def clear_stale_pokemons():
     current_time = time.time()
