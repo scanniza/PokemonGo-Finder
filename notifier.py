@@ -1,14 +1,16 @@
 import json
 from slackclient import SlackClient
 import datetime
+from dateutil import tz
 
 wanted_pokemon = None
 sc = None
 sc_channel_name = None
+timezone = "Europe/Stockholm"
 
 # Initialize object
 def init():
-    global sc, wanted_pokemon, sc_channel_name
+    global sc, wanted_pokemon, sc_channel_name, timezone
     # load pushbullet key
     with open('config.json') as data_file:
         data = json.load(data_file)
@@ -19,6 +21,7 @@ def init():
         # get token
         token = _str( data["slack"] )
         sc_channel_name = _str( data["slack_channel_name"] )
+        timezone = _str( data["timezone"] )
         sc = SlackClient(token)
 
 
@@ -31,7 +34,8 @@ def _str(s):
 def pokemon_found(pokemon):
     # get name
     pokename = _str( pokemon["name"] ).lower()
-    poketime = datetime.datetime.fromtimestamp(int(pokemon["disappear_time"])).strftime('%H:%M')
+    to_zone = tz.gettz(timezone)
+    poketime = datetime.datetime.fromtimestamp(int(pokemon["disappear_time"]),to_zone).strftime('%H:%M')
     address = "http://maps.google.com/maps?z=12&t=m&q=loc:"+str(pokemon["lat"])+"+"+str(pokemon["lng"])
     # check array
     if not pokename in wanted_pokemon: return

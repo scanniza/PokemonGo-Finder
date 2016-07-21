@@ -20,6 +20,7 @@ Here's a sample `config.json`:
   "notify": "dratini,magnemite,electabuzz,hitmonchan,hitmonlee,chansey,lapras,snorlax,porygon,mew,mewtwo,moltres,zapdos,articuno,ditto,seel,gyarados,cubone",
   "slack": "xoxp-2621592322-32256533362-61445255476-ef0b6786ee",
   "slack_channel_name": "general"
+  "timezone": "Europe/Stockholm"
 }
 ```
 
