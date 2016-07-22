@@ -18,7 +18,8 @@ Here's a sample `config.json`:
   "step_limit": 5,
   "location": "742 Evergreen Terrace, Arlington, VA",
   "notify": "dratini,magnemite,electabuzz,hitmonchan,hitmonlee,chansey,lapras,snorlax,porygon,mew,mewtwo,moltres,zapdos,articuno,ditto,seel,gyarados,cubone",
-  "pushbullet": "o.XyDeiVeYuM5eSv2ssy7AlFGLDl4ajEXj"
+  "pushbullet": "o.XyDeiVeYuM5eSv2ssy7AlFGLDl4ajEXj",
+  "channel_tag": "my_pushbullet_channel_tag"
 }
 ```
 

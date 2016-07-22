@@ -1,18 +1,15 @@
 import json
 from pushbullet import Pushbullet
+from geopy.geocoders import Nominatim
 from datetime import datetime
-import sys
-
-# Fixes the encoding of the male/female symbol
-reload(sys)  
-sys.setdefaultencoding('utf8')
 
 pushbullet_client = None
 wanted_pokemon = None
+pushbullet_channel = None
 
 # Initialize object
 def init():
-    global pushbullet_client, wanted_pokemon
+    global pushbullet_client, wanted_pokemon, pushbullet_channel
     # load pushbullet key
     with open('config.json') as data_file:
         data = json.load(data_file)
@@ -22,8 +19,9 @@ def init():
         wanted_pokemon = [a.lower() for a in wanted_pokemon]
         # get api key
         api_key = _str( data["pushbullet"] )
-        if api_key:
-            pushbullet_client = Pushbullet(api_key)
+        pushbullet_client = Pushbullet(api_key)
+        if data.get("channel_tag"):
+            pushbullet_channel=get_channel(pushbullet_client, _str( data.get("channel_tag") ))
 
 
 # Safely parse incoming strings to unicode
@@ -33,21 +31,26 @@ def _str(s):
 # Notify user for discovered Pokemon
 def pokemon_found(pokemon):
     # get name
-    pokename = _str(pokemon["name"]).lower()
+    pokename = _str( pokemon["name"] ).lower()
     # check array
-    if not pushbullet_client or not pokename in wanted_pokemon: return
+    if not pokename in wanted_pokemon: return
     # notify
     print "[+] Notifier found pokemon:", pokename
-
-    #http://maps.google.com/maps/place/<place_lat>,<place_long>/@<map_center_lat>,<map_center_long>,<zoom_level>z
-    latLon = '{},{}'.format(repr(pokemon["lat"]), repr(pokemon["lng"]))
-    google_maps_link = 'http://maps.google.com/maps/place/{}/@{},{}z'.format(latLon, latLon, 20)
-
+    address = Nominatim().reverse(str(pokemon["lat"])+", "+str(pokemon["lng"])).address
+    # Locate pokemon on GMAPS
+    gMaps = "http://maps.google.com/maps?q=" + str(pokemon["lat"]) + "," + str(pokemon["lng"])
     notification_text = "Pokemon Finder found " + _str(pokemon["name"]) + "!"
     disappear_time = str(datetime.fromtimestamp(pokemon["disappear_time"]).strftime("%I:%M%p").lstrip('0'))+")"
-    location_text = "Locate on Google Maps : " + google_maps_link + ". " + _str(pokemon["name"]) + " will be available until " + disappear_time + "."
+    location_text = "Go search at this location: " + address + ". Locate on Google Maps : " + gMaps + ". " + _str(pokemon["name"]) + " will be available until " + disappear_time + "."
+    if(pushbullet_channel):
+        push = pushbullet_channel.push_note(notification_text, location_text)
+    else:
+        push = pushbullet_client.push_note(notification_text, location_text)
 
-    push = pushbullet_client.push_link(notification_text, google_maps_link, body=location_text)
+def get_channel(self, channel_tag):
+    req_channel = next((channel for channel in self.channels if channel.channel_tag == channel_tag), None)
+
+    return req_channel
 
 
 
